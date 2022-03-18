@@ -47,7 +47,7 @@ EXTRAS_REQUIRE = {
         "sphinx_rtd_theme>=0.1.9",
         "toposort>=1.4",
         "urllib3",
-        "tronapi",
+        "legacyapi",
         "wheel >= 0.31.0"
     ],
 
@@ -84,7 +84,7 @@ install_requires = [
     "eth-utils>=1.3.0,<2.0.0",
     "eth-hash[pycryptodome]>=0.2.0,<1.0.0",
 
-    "trx-utils",
+    "lgcy-utils",
 
     "hexbytes>=0.1.0,<1.0.0",
 
@@ -102,13 +102,13 @@ with open(readme_filename) as f:
 
 
 setup(
-    name='tronapi',
+    name='legacyapi',
     version=PACKAGE_VERSION,
-    description='A Python API for interacting with Tron (TRX)',
+    description='A Python API for interacting with Legacy (LGCY)',
     long_description=PACKAGE_LONG_DESCRIPTION,
     long_description_content_type='text/x-rst',
-    keywords='tron tron-api tron-api-python iexbase',
-    url='https://github.com/iexbase/tron-api-python',
+    keywords='legayc legacy-api legacy-api-python iexbase',
+    url='https://github.com/autotheos/tron-api-python',
     author='Shamsudin Serderov',
     author_email='steein.shamsudin@gmail.com',
     license='MIT License',
