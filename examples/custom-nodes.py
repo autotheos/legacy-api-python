@@ -1,20 +1,20 @@
-from tronapi import Tron
-from tronapi import HttpProvider
+from legacyapi import Legacy
+from legacyapi import HttpProvider
 
-full_node = HttpProvider('https://api.trongrid.io')
-solidity_node = HttpProvider('https://api.trongrid.io')
-event_server = HttpProvider('https://api.trongrid.io')
+full_node = HttpProvider('https://apilg.lgcyscan.network/')
+solidity_node = HttpProvider('https://apilg.lgcyscan.network/')
+event_server = HttpProvider('https://apilg.lgcyscan.network/')
 
 # option 1
-tron = Tron(full_node=full_node,
+legacy = Legacy(full_node=full_node,
             solidity_node=solidity_node,
             event_server=event_server)
 
 # option 2
-tron_v2 = Tron()
+legacy_v2 = Legacy()
 
 # option 3
-tron_v3 = Tron(
+legacy_v3 = Legacy(
     default_address='TRWBqiqoFZysoAeyR1J35ibuyc8EvhUAoY',
     private_key='...'
 )
