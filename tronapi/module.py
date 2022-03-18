@@ -8,8 +8,8 @@
 class Module:
     """Module Class"""
 
-    def __init__(self, tron) -> None:
-        self.tron = tron
+    def __init__(self, legacy) -> None:
+        self.legacy = legacy
 
     @classmethod
     def attach(cls, target, module_name: str = None) -> None:
@@ -18,7 +18,7 @@ class Module:
 
         if hasattr(target, module_name):
             raise AttributeError(
-                "Cannot set {0} module named '{1}'.  The Tron object "
+                "Cannot set {0} module named '{1}'.  The Legacy object "
                 "already has an attribute with that name".format(
                     target,
                     module_name,
@@ -26,8 +26,8 @@ class Module:
             )
 
         if isinstance(target, Module):
-            tron = target.tron
+            legacy = target.legacy
         else:
-            tron = target
+            legacy = target
 
-        setattr(target, module_name, cls(tron))
+        setattr(target, module_name, cls(legacy))
