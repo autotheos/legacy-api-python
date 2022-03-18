@@ -4,8 +4,8 @@
 # See License.txt in the project root for license information.
 # --------------------------------------------------------------------
 
-from tronapi.common.formatters import apply_formatters_to_dict
-from tronapi.common.toolz import (
+from legacyapi.common.formatters import apply_formatters_to_dict
+from legacyapi.common.toolz import (
     concat,
     curry,
 )
