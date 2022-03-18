@@ -108,7 +108,7 @@ setup(
     long_description=PACKAGE_LONG_DESCRIPTION,
     long_description_content_type='text/x-rst',
     keywords='legayc legacy-api legacy-api-python iexbase',
-    url='https://github.com/autotheos/tron-api-python',
+    url='https://github.com/autotheos/legacy-api-python',
     author='Shamsudin Serderov',
     author_email='steein.shamsudin@gmail.com',
     license='MIT License',
