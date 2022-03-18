@@ -12,9 +12,9 @@ from eth_utils import (
     to_hex,
     function_abi_to_4byte_selector
 )
-from trx_utils import is_text, encode_hex
+from lgcy_utils import is_text, encode_hex
 
-from tronapi.common.abi import (
+from legacyapi.common.abi import (
     filter_by_name,
     filter_by_encodability,
     filter_by_argument_count,
@@ -26,7 +26,7 @@ from tronapi.common.abi import (
     merge_args_and_kwargs
 )
 
-from tronapi.common.normalizers import (
+from legacyapi.common.normalizers import (
     abi_address_to_hex,
     abi_bytes_to_bytes,
     abi_string_to_text
