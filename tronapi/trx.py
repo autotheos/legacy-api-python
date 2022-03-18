@@ -5,7 +5,7 @@
 # --------------------------------------------------------------------
 
 """
-    tronapi.trx
+    legacyapi.lgcy
     ===============
 
     Work with basic methods
@@ -17,33 +17,33 @@
 import math
 from typing import Any
 
-from trx_utils import is_integer, is_hex
-from trx_utils.types import is_object, is_string, is_list
+from lgcy_utils import is_integer, is_hex
+from lgcy_utils.types import is_object, is_string, is_list
 
-from tronapi.common.transactions import wait_for_transaction_id
-from tronapi.contract import Contract
-from tronapi.exceptions import InvalidTronError, TronError, TimeExhausted
-from tronapi.module import Module
-from tronapi.common.blocks import select_method_for_block
-from tronapi.common.toolz import (
+from legacyapi.common.transactions import wait_for_transaction_id
+from legacyapi.contract import Contract
+from legacyapi.exceptions import InvalidLegacyError, LegacyError, TimeExhausted
+from legacyapi.module import Module
+from legacyapi.common.blocks import select_method_for_block
+from legacyapi.common.toolz import (
     assoc
 )
-from tronapi.common.account import Account
+from legacyapi.common.account import Account
 
-TRX_MESSAGE_HEADER = '\x19TRON Signed Message:\n'
+LGCY_MESSAGE_HEADER = '\x19LGCY Signed Message:\n'
 ETH_MESSAGE_HEADER = '\x19Ethereum Signed Message:\n'
 
 
-class Trx(Module):
+class Lgcy(Module):
     default_contract_factory = Contract
 
     def get_current_block(self):
         """Query the latest block"""
-        return self.tron.manager.request(url='/wallet/getnowblock')
+        return self.legacy.manager.request(url='/wallet/getnowblock')
 
     def get_confirmed_current_block(self):
         """Query the confirmed latest block"""
-        return self.tron.manager.request('/walletsolidity/getnowblock')
+        return self.legacy.manager.request('/walletsolidity/getnowblock')
 
     def get_block(self, block: Any = None):
         """Get block details using HashString or blockNumber
@@ -56,7 +56,7 @@ class Trx(Module):
         # If the block identifier is not specified,
         # we take the default
         if block is None:
-            block = self.tron.default_block
+            block = self.legacy.default_block
 
         if block == 'latest':
             return self.get_current_block()
@@ -69,7 +69,7 @@ class Trx(Module):
             if_number={'url': '/wallet/getblockbynum', 'field': 'num'},
         )
 
-        result = self.tron.manager.request(method['url'], {
+        result = self.legacy.manager.request(method['url'], {
             method['field']: block
         })
 
@@ -86,7 +86,7 @@ class Trx(Module):
         if not is_integer(num) or num < 0:
             raise ValueError('Invalid num provided')
 
-        return self.tron.manager.request('/wallet/gettransactioncountbyblocknum', {
+        return self.legacy.manager.request('/wallet/gettransactioncountbyblocknum', {
             'num': num
         })
 
@@ -99,7 +99,7 @@ class Trx(Module):
         """
         transaction = self.get_block(block)
         if 'transactions' not in transaction:
-            raise TronError('Parameter "transactions" not found')
+            raise LegacyError('Parameter "transactions" not found')
 
         return len(transaction)
 
@@ -112,11 +112,11 @@ class Trx(Module):
 
         """
         if not is_integer(index) or index < 0:
-            raise InvalidTronError('Invalid transaction index provided')
+            raise InvalidLegacyError('Invalid transaction index provided')
 
         transactions = self.get_block(block).get('transactions')
         if not transactions or len(transactions) < index:
-            raise TronError('Transaction not found in block')
+            raise LegacyError('Transaction not found in block')
 
         return transactions[index]
 
@@ -143,7 +143,7 @@ class Trx(Module):
             if poll_latency > timeout:
                 poll_latency = timeout
 
-            return wait_for_transaction_id(self.tron, transaction_hash, timeout, poll_latency)
+            return wait_for_transaction_id(self.legacy, transaction_hash, timeout, poll_latency)
         except TimeoutError:
             raise TimeExhausted(
                 "Transaction {} is not in the chain, after {} seconds".format(
@@ -162,7 +162,7 @@ class Trx(Module):
         """
 
         method = 'walletsolidity' if is_confirm else 'wallet'
-        response = self.tron.manager.request('/{}/gettransactionbyid'.format(method), {
+        response = self.legacy.manager.request('/{}/gettransactionbyid'.format(method), {
             'value': transaction_id
         })
 
@@ -180,12 +180,12 @@ class Trx(Module):
             account_id = id[2:]
 
         if 'confirmed' in options:
-            return self.tron.manager.request('/walletsolidity/getaccountbyid', {
-                'account_id': self.tron.toHex(text=account_id)
+            return self.legacy.manager.request('/walletsolidity/getaccountbyid', {
+                'account_id': self.legacy.toHex(text=account_id)
             })
 
-        return self.tron.manager.request('/wallet/getaccountbyid', {
-            'account_id': self.tron.toHex(text=account_id)
+        return self.legacy.manager.request('/wallet/getaccountbyid', {
+            'account_id': self.legacy.toHex(text=account_id)
         })
 
     def get_unconfirmed_account_by_id(self, account_id: str):
@@ -206,13 +206,13 @@ class Trx(Module):
         """
 
         if address is None:
-            address = self.tron.default_address.hex
+            address = self.legacy.default_address.hex
 
-        if not self.tron.isAddress(address):
-            raise InvalidTronError('Invalid address provided')
+        if not self.legacy.isAddress(address):
+            raise InvalidLegacyError('Invalid address provided')
 
-        return self.tron.manager.request('/wallet/getaccountresource', {
-            'address': self.tron.address.to_hex(address)
+        return self.legacy.manager.request('/wallet/getaccountresource', {
+            'address': self.legacy.address.to_hex(address)
         })
 
     def get_account(self, address=None):
@@ -224,13 +224,13 @@ class Trx(Module):
         """
 
         if address is None:
-            address = self.tron.default_address.hex
+            address = self.legacy.default_address.hex
 
-        if not self.tron.isAddress(address):
-            raise InvalidTronError('Invalid address provided')
+        if not self.legacy.isAddress(address):
+            raise InvalidLegacyError('Invalid address provided')
 
-        return self.tron.manager.request('/walletsolidity/getaccount', {
-            'address': self.tron.address.to_hex(address)
+        return self.legacy.manager.request('/walletsolidity/getaccount', {
+            'address': self.legacy.address.to_hex(address)
         })
 
     def get_balance(self, address=None, is_float=False):
@@ -246,7 +246,7 @@ class Trx(Module):
             return 0
 
         if is_float:
-            return self.tron.fromSun(response['balance'])
+            return self.legacy.fromSun(response['balance'])
 
         return response['balance']
 
@@ -263,7 +263,7 @@ class Trx(Module):
         """
 
         if direction not in ['from', 'to', 'all']:
-            raise InvalidTronError('Invalid direction provided: Expected "to", "from" or "all"')
+            raise InvalidLegacyError('Invalid direction provided: Expected "to", "from" or "all"')
 
         if direction == 'all':
             _from = self.get_transactions_related(address, 'from', limit, offset)
@@ -277,21 +277,21 @@ class Trx(Module):
             return callback
 
         if address is None:
-            address = self.tron.default_address.hex
+            address = self.legacy.default_address.hex
 
-        if not self.tron.isAddress(address):
-            raise InvalidTronError('Invalid address provided')
+        if not self.legacy.isAddress(address):
+            raise InvalidLegacyError('Invalid address provided')
 
         if not isinstance(limit, int) or limit < 0 or (offset and limit < 1):
-            raise InvalidTronError('Invalid limit provided')
+            raise InvalidLegacyError('Invalid limit provided')
 
         if not isinstance(offset, int) or offset < 0:
-            raise InvalidTronError('Invalid offset provided')
+            raise InvalidLegacyError('Invalid offset provided')
 
         path = '/walletextension/gettransactions{0}this'.format(direction)
-        response = self.tron.manager.request(path, {
+        response = self.legacy.manager.request(path, {
             'account': {
-                'address': self.tron.address.to_hex(address)
+                'address': self.legacy.address.to_hex(address)
             },
             'limit': limit,
             'offset': offset
@@ -339,7 +339,7 @@ class Trx(Module):
             Transaction fee，block height and block creation time
 
         """
-        response = self.tron.manager.request('/walletsolidity/gettransactioninfobyid', {
+        response = self.legacy.manager.request('/walletsolidity/gettransactioninfobyid', {
             'value': tx_id
         })
 
@@ -366,13 +366,13 @@ class Trx(Module):
         """
 
         if address is None:
-            address = self.tron.default_address.hex
+            address = self.legacy.default_address.hex
 
-        if not self.tron.isAddress(address):
-            raise InvalidTronError('Invalid address provided')
+        if not self.legacy.isAddress(address):
+            raise InvalidLegacyError('Invalid address provided')
 
-        response = self.tron.manager.request('/wallet/getaccountnet', {
-            'address': self.tron.address.to_hex(address)
+        response = self.legacy.manager.request('/wallet/getaccountnet', {
+            'address': self.legacy.address.to_hex(address)
         })
 
         free_net_limit = 0 if 'freeNetLimit' not in response else response['freeNetLimit']
@@ -390,15 +390,15 @@ class Trx(Module):
             Total number of transactions.
 
         """
-        response = self.tron.manager.request('/wallet/totaltransaction')
+        response = self.legacy.manager.request('/wallet/totaltransaction')
         return response.get('num')
 
     def send(self, to, amount, options=None):
-        """Send funds to the Tron account (option 2)"""
+        """Send funds to the Legacy account (option 2)"""
         return self.send_transaction(to, amount, options)
 
-    def send_trx(self, to, amount, options=None):
-        """Send funds to the Tron account (option 3)"""
+    def send_lgcy(self, to, amount, options=None):
+        """Send funds to the Legacy account (option 3)"""
         return self.send_transaction(to, amount, options)
 
     def send_transaction(self, to, amount, options=None):
@@ -406,8 +406,8 @@ class Trx(Module):
         Will create and broadcast the transaction if a private key is provided.
 
         Args:
-            to (str): Address to send TRX to.
-            amount (float): Amount of TRX to send.
+            to (str): Address to send LGCY to.
+            amount (float): Amount of LGCY to send.
             options (Any, optional): Options
 
         """
@@ -416,9 +416,9 @@ class Trx(Module):
             options = {}
 
         if 'from' not in options:
-            options = assoc(options, 'from', self.tron.default_address.hex)
+            options = assoc(options, 'from', self.legacy.default_address.hex)
 
-        tx = self.tron.transaction_builder.send_transaction(
+        tx = self.legacy.transaction_builder.send_transaction(
             to,
             amount,
             options['from']
@@ -426,7 +426,7 @@ class Trx(Module):
         # If a comment is attached to the transaction,
         # in this case adding to the object
         if 'message' in options:
-            tx['raw_data']['data'] = self.tron.toHex(text=str(options['message']))
+            tx['raw_data']['data'] = self.legacy.toHex(text=str(options['message']))
 
         sign = self.sign(tx)
         result = self.broadcast(sign)
@@ -447,9 +447,9 @@ class Trx(Module):
 
         """
         if account is None:
-            account = self.tron.default_address.hex
+            account = self.legacy.default_address.hex
 
-        tx = self.tron.transaction_builder.send_token(
+        tx = self.legacy.transaction_builder.send_token(
             to,
             amount,
             token_id,
@@ -462,22 +462,22 @@ class Trx(Module):
 
     def freeze_balance(self, amount=0, duration=3, resource='BANDWIDTH', account=None):
         """
-        Freezes an amount of TRX.
-        Will give bandwidth OR Energy and TRON Power(voting rights)
+        Freezes an amount of LGCY.
+        Will give bandwidth OR Energy and LGCY Power(voting rights)
         to the owner of the frozen tokens.
 
         Args:
-            amount (int): number of frozen trx
+            amount (int): number of frozen lgcy
             duration (int): duration in days to be frozen
             resource (str): type of resource, must be either "ENERGY" or "BANDWIDTH"
-            account (str): address that is freezing trx account
+            account (str): address that is freezing lgcy account
 
         """
 
         if account is None:
-            account = self.tron.default_address.hex
+            account = self.legacy.default_address.hex
 
-        transaction = self.tron.transaction_builder.freeze_balance(
+        transaction = self.legacy.transaction_builder.freeze_balance(
             amount,
             duration,
             resource,
@@ -490,19 +490,19 @@ class Trx(Module):
 
     def unfreeze_balance(self, resource='BANDWIDTH', account=None):
         """
-        Unfreeze TRX that has passed the minimum freeze duration.
-        Unfreezing will remove bandwidth and TRON Power.
+        Unfreeze LGCY that has passed the minimum freeze duration.
+        Unfreezing will remove bandwidth and LGCY Power.
 
         Args:
             resource (str): type of resource, must be either "ENERGY" or "BANDWIDTH"
-            account (str): address that is freezing trx account
+            account (str): address that is freezing lgcy account
 
         """
 
         if account is None:
-            account = self.tron.default_address.hex
+            account = self.legacy.default_address.hex
 
-        transaction = self.tron.transaction_builder.unfreeze_balance(
+        transaction = self.legacy.transaction_builder.unfreeze_balance(
             resource,
             account
         )
@@ -526,20 +526,20 @@ class Trx(Module):
         """
 
         if 'signature' in transaction:
-            raise TronError('Transaction is already signed')
+            raise LegacyError('Transaction is already signed')
 
-        address = self.tron.address.from_private_key(self.tron.private_key).hex.lower()
+        address = self.legacy.address.from_private_key(self.legacy.private_key).hex.lower()
         owner_address = transaction['raw_data']['contract'][0]['parameter']['value']['owner_address']
 
         if address != owner_address:
             raise ValueError('Private key does not match address in transaction')
 
-        return self.tron.manager.request('/wallet/gettransactionsign', {
+        return self.legacy.manager.request('/wallet/gettransactionsign', {
             'transaction': transaction,
-            'privateKey': self.tron.private_key
+            'privateKey': self.legacy.private_key
         })
 
-    def sign(self, transaction: Any, use_tron: bool = True, multisig: bool = False):
+    def sign(self, transaction: Any, use_legacy: bool = True, multisig: bool = False):
         """Safe method for signing your transaction
 
         Warnings:
@@ -547,31 +547,31 @@ class Trx(Module):
 
         Args:
             transaction (Any): transaction details
-            use_tron (bool): is Tron header
+            use_legacy (bool): is Legacy header
             multisig (bool): multi sign
 
         """
 
         if is_string(transaction):
             if not is_hex(transaction):
-                raise TronError('Expected hex message input')
+                raise LegacyError('Expected hex message input')
 
             # Determine which header to attach to the message
             # before encrypting or decrypting
-            header = TRX_MESSAGE_HEADER if use_tron else ETH_MESSAGE_HEADER
+            header = LGCY_MESSAGE_HEADER if use_legacy else ETH_MESSAGE_HEADER
             header += str(len(transaction))
 
-            message_hash = self.tron.keccak(text=header+transaction)
+            message_hash = self.legacy.keccak(text=header+transaction)
 
-            signed_message = Account.sign_hash(self.tron.toHex(message_hash), self.tron.private_key)
+            signed_message = Account.sign_hash(self.legacy.toHex(message_hash), self.legacy.private_key)
             return signed_message
 
         if not multisig and 'signature' in transaction:
-            raise TronError('Transaction is already signed')
+            raise LegacyError('Transaction is already signed')
 
         try:
             if not multisig:
-                address = self.tron.address.from_private_key(self.tron.private_key).hex.lower()
+                address = self.legacy.address.from_private_key(self.legacy.private_key).hex.lower()
                 owner_address = transaction['raw_data']['contract'][0]['parameter']['value']['owner_address']
 
                 if address != owner_address:
@@ -579,7 +579,7 @@ class Trx(Module):
 
             # This option deals with signing of transactions, and writing to the array
             signed_tx = Account.sign_hash(
-                transaction['txID'], self.tron.private_key
+                transaction['txID'], self.legacy.private_key
             )
             signature = signed_tx['signature'].hex()[2:]
 
@@ -592,7 +592,7 @@ class Trx(Module):
 
             return transaction
         except ValueError as err:
-            raise InvalidTronError(err)
+            raise InvalidLegacyError(err)
 
     def broadcast(self, signed_transaction):
         """Broadcast the signed transaction
@@ -602,12 +602,12 @@ class Trx(Module):
 
         """
         if not is_object(signed_transaction):
-            raise InvalidTronError('Invalid transaction provided')
+            raise InvalidLegacyError('Invalid transaction provided')
 
         if 'signature' not in signed_transaction:
-            raise TronError('Transaction is not signed')
+            raise LegacyError('Transaction is not signed')
 
-        response = self.tron.manager.request('/wallet/broadcasttransaction',
+        response = self.legacy.manager.request('/wallet/broadcasttransaction',
                                              signed_transaction)
 
         if 'result' in response:
@@ -623,12 +623,12 @@ class Trx(Module):
             transaction (Any): transaction details
         """
         if not is_object(transaction):
-            raise TronError('Invalid transaction provided')
+            raise LegacyError('Invalid transaction provided')
 
         signed_tx = self.sign(transaction)
         return self.broadcast(signed_tx)
 
-    def verify_message(self, message, signed_message=None, address=None, use_tron: bool = True):
+    def verify_message(self, message, signed_message=None, address=None, use_legacy: bool = True):
         """ Get the address of the account that signed the message with the given hash.
         You must specify exactly one of: vrs or signature
 
@@ -636,25 +636,25 @@ class Trx(Module):
             message (str): The message in the format "hex"
             signed_message (AttributeDict): Signature
             address (str): is Address
-            use_tron (bool): is Tron header
+            use_legacy (bool): is Legacy header
 
         """
         if address is None:
-            address = self.tron.default_address.base58
+            address = self.legacy.default_address.base58
 
         if not is_hex(message):
-            raise TronError('Expected hex message input')
+            raise LegacyError('Expected hex message input')
 
         # Determine which header to attach to the message
         # before encrypting or decrypting
-        header = TRX_MESSAGE_HEADER if use_tron else ETH_MESSAGE_HEADER
+        header = LGCY_MESSAGE_HEADER if use_legacy else ETH_MESSAGE_HEADER
         header += str(len(message))
 
-        message_hash = self.tron.keccak(text=header+message)
-        recovered = Account.recover_hash(self.tron.toHex(message_hash), signed_message.signature)
+        message_hash = self.legacy.keccak(text=header+message)
+        recovered = Account.recover_hash(self.legacy.toHex(message_hash), signed_message.signature)
 
-        tron_address = '41' + recovered[2:]
-        base58address = self.tron.address.from_hex(tron_address).decode()
+        legacy_address = '41' + recovered[2:]
+        base58address = self.legacy.address.from_hex(legacy_address).decode()
 
         if base58address == address:
             return True
@@ -671,9 +671,9 @@ class Trx(Module):
 
         """
         if address is None:
-            address = self.tron.default_address.hex
+            address = self.legacy.default_address.hex
 
-        transaction = self.tron.transaction_builder.update_account(
+        transaction = self.legacy.transaction_builder.update_account(
             account_name,
             address
         )
@@ -684,7 +684,7 @@ class Trx(Module):
 
     def apply_for_sr(self, url, address):
         """Apply to become a super representative
-        Note: Applied to become a super representative. Cost 9999 TRX.
+        Note: Applied to become a super representative. Cost 9999 lgcy.
 
         Args:
             url (str): official website address
@@ -693,9 +693,9 @@ class Trx(Module):
         """
 
         if address is None:
-            address = self.tron.default_address.hex
+            address = self.legacy.default_address.hex
 
-        transaction = self.tron.transaction_builder.apply_for_sr(
+        transaction = self.legacy.transaction_builder.apply_for_sr(
             url,
             address
         )
@@ -706,9 +706,9 @@ class Trx(Module):
 
     def list_nodes(self):
         """List the nodes which the api fullnode is connecting on the network"""
-        response = self.tron.manager.request('/wallet/listnodes')
+        response = self.legacy.manager.request('/wallet/listnodes')
         callback = map(lambda x: {
-            'address': '{}:{}'.format(self.tron.toText(x['address']['host']),
+            'address': '{}:{}'.format(self.legacy.toText(x['address']['host']),
                                       str(x['address']['port']))
         }, response['nodes'])
 
@@ -726,12 +726,12 @@ class Trx(Module):
 
         """
 
-        if not self.tron.isAddress(address):
-            raise InvalidTronError('Invalid address provided')
+        if not self.legacy.isAddress(address):
+            raise InvalidLegacyError('Invalid address provided')
 
-        address = self.tron.address.to_hex(address)
+        address = self.legacy.address.to_hex(address)
 
-        return self.tron.manager.request('/wallet/getassetissuebyaccount', {
+        return self.legacy.manager.request('/wallet/getassetissuebyaccount', {
             'address': address
         })
 
@@ -743,10 +743,10 @@ class Trx(Module):
 
         """
         if not isinstance(token_id, str) or not len(token_id):
-            raise InvalidTronError('Invalid token ID provided')
+            raise InvalidLegacyError('Invalid token ID provided')
 
-        return self.tron.manager.request('/wallet/getassetissuebyname', {
-            'value': self.tron.toHex(text=token_id)
+        return self.legacy.manager.request('/wallet/getassetissuebyname', {
+            'value': self.legacy.toHex(text=token_id)
         })
 
     def get_block_range(self, start, end):
@@ -758,12 +758,12 @@ class Trx(Module):
 
         """
         if not is_integer(start) or start < 0:
-            raise InvalidTronError('Invalid start of range provided')
+            raise InvalidLegacyError('Invalid start of range provided')
 
         if not is_integer(end) or end <= start:
-            raise InvalidTronError('Invalid end of range provided')
+            raise InvalidLegacyError('Invalid end of range provided')
 
-        response = self.tron.manager.request('/wallet/getblockbylimitnext', {
+        response = self.legacy.manager.request('/wallet/getblockbylimitnext', {
             'startNum': int(start),
             'endNum': int(end) + 1
         }, 'post')
@@ -778,9 +778,9 @@ class Trx(Module):
 
         """
         if not is_integer(num) or num <= 0:
-            raise InvalidTronError('Invalid limit provided')
+            raise InvalidLegacyError('Invalid limit provided')
 
-        response = self.tron.manager.request('/wallet/getblockbylatestnum', {
+        response = self.legacy.manager.request('/wallet/getblockbylatestnum', {
             'num': num
         })
 
@@ -788,7 +788,7 @@ class Trx(Module):
 
     def list_super_representatives(self):
         """Query the list of Super Representatives"""
-        response = self.tron.manager.request('/wallet/listwitnesses')
+        response = self.legacy.manager.request('/wallet/listwitnesses')
         return response.get('witnesses')
 
     def list_tokens(self, limit=0, offset=0):
@@ -803,15 +803,15 @@ class Trx(Module):
 
         """
         if not is_integer(limit) or (limit and offset < 1):
-            raise InvalidTronError('Invalid limit provided')
+            raise InvalidLegacyError('Invalid limit provided')
 
         if not is_integer(offset) or offset < 0:
-            raise InvalidTronError('Invalid offset provided')
+            raise InvalidLegacyError('Invalid offset provided')
 
         if not limit:
-            return self.tron.manager.request('/wallet/getassetissuelist').get('assetIssue')
+            return self.legacy.manager.request('/wallet/getassetissuelist').get('assetIssue')
 
-        return self.tron.manager.request('/wallet/getpaginatedassetissuelist', {
+        return self.legacy.manager.request('/wallet/getpaginatedassetissuelist', {
             'limit': int(limit),
             'offset': int(offset)
         })
@@ -823,7 +823,7 @@ class Trx(Module):
             Number of milliseconds until the next voting time.
 
         """
-        num = self.tron.manager.request('/wallet/getnextmaintenancetime').get('num')
+        num = self.legacy.manager.request('/wallet/getnextmaintenancetime').get('num')
 
         if num == -1:
             raise Exception('Failed to get time until next vote cycle')
@@ -841,22 +841,22 @@ class Trx(Module):
 
         """
 
-        if not self.tron.isAddress(contract_address):
-            raise InvalidTronError('Invalid contract address provided')
+        if not self.legacy.isAddress(contract_address):
+            raise InvalidLegacyError('Invalid contract address provided')
 
-        return self.tron.manager.request('/wallet/getcontract', {
-            'value': self.tron.address.to_hex(contract_address)
+        return self.legacy.manager.request('/wallet/getcontract', {
+            'value': self.legacy.address.to_hex(contract_address)
         })
 
     def contract(self, address=None, **kwargs):
         """Work with a contract
 
         Args:
-            address (str): TRON Address
+            address (str): LGCY Address
             **kwargs (any): details (bytecode, abi)
         """
         factory_class = kwargs.pop('contract_factory_class', self.default_contract_factory)
-        contract_factory = factory_class.factory(self.tron, **kwargs)
+        contract_factory = factory_class.factory(self.legacy, **kwargs)
 
         if address:
             return contract_factory(address)
@@ -871,15 +871,15 @@ class Trx(Module):
 
         """
         if _is_hex:
-            address = self.tron.address.to_hex(address)
+            address = self.legacy.address.to_hex(address)
 
-        return self.tron.manager.request('/wallet/validateaddress', {
+        return self.legacy.manager.request('/wallet/validateaddress', {
             'address': address
         })
 
     def get_chain_parameters(self):
         """Getting chain parameters"""
-        return self.tron.manager.request('/wallet/getchainparameters')
+        return self.legacy.manager.request('/wallet/getchainparameters')
 
     def get_exchange_by_id(self, exchange_id):
         """Find exchange by id
@@ -890,15 +890,15 @@ class Trx(Module):
         """
 
         if not isinstance(exchange_id, int) or exchange_id < 0:
-            raise InvalidTronError('Invalid exchangeID provided')
+            raise InvalidLegacyError('Invalid exchangeID provided')
 
-        return self.tron.manager.request('/wallet/getexchangebyid', {
+        return self.legacy.manager.request('/wallet/getexchangebyid', {
             'id': exchange_id
         })
 
     def get_list_exchangers(self):
         """Get list exchangers"""
-        return self.tron.manager.request('/wallet/listexchanges')
+        return self.legacy.manager.request('/wallet/listexchanges')
 
     def get_proposal(self, proposal_id):
         """Query proposal based on id
@@ -908,9 +908,9 @@ class Trx(Module):
 
         """
         if not isinstance(proposal_id, int) or proposal_id < 0:
-            raise InvalidTronError('Invalid proposalID provided')
+            raise InvalidLegacyError('Invalid proposalID provided')
 
-        return self.tron.manager.request('/wallet/getproposalbyid', {
+        return self.legacy.manager.request('/wallet/getproposalbyid', {
             'id': int(proposal_id)
         })
 
@@ -921,7 +921,7 @@ class Trx(Module):
             Proposal list information
 
         """
-        return self.tron.manager.request('/wallet/listproposals')
+        return self.legacy.manager.request('/wallet/listproposals')
 
     def vote_proposal(self, proposal_id, has_approval, voter_address):
         """Proposal approval
@@ -937,9 +937,9 @@ class Trx(Module):
         """
 
         if voter_address is None:
-            voter_address = self.tron.default_address.hex
+            voter_address = self.legacy.default_address.hex
 
-        transaction = self.tron.transaction_builder.vote_proposal(
+        transaction = self.legacy.transaction_builder.vote_proposal(
             proposal_id,
             has_approval,
             voter_address
@@ -961,9 +961,9 @@ class Trx(Module):
 
         """
         if issuer_address is None:
-            issuer_address = self.tron.default_address.hex
+            issuer_address = self.legacy.default_address.hex
 
-        transaction = self.tron.transaction_builder.delete_proposal(
+        transaction = self.legacy.transaction_builder.delete_proposal(
             proposal_id,
             issuer_address
         )
@@ -980,14 +980,14 @@ class Trx(Module):
             offset (int): index of the starting trading pair
 
         """
-        return self.tron.manager.request('/wallet/listexchangespaginated', {
+        return self.legacy.manager.request('/wallet/listexchangespaginated', {
             'limit': limit,
             'offset': offset
         })
 
     def get_node_info(self):
         """Get info about thre node"""
-        return self.tron.manager.request('/wallet/getnodeinfo')
+        return self.legacy.manager.request('/wallet/getnodeinfo')
 
     def get_token_list_name(self, token_id: str) -> any:
         """Query token list by name.
@@ -998,8 +998,8 @@ class Trx(Module):
         if not is_string(token_id):
             raise ValueError('Invalid token ID provided')
 
-        return self.tron.manager.request('/wallet/getassetissuelistbyname', {
-            'value': self.tron.toHex(text=token_id)
+        return self.legacy.manager.request('/wallet/getassetissuelistbyname', {
+            'value': self.legacy.toHex(text=token_id)
         })
 
     def get_token_by_id(self, token_id: str) -> any:
@@ -1011,6 +1011,6 @@ class Trx(Module):
         if not is_string(token_id):
             raise ValueError('Invalid token ID provided')
 
-        return self.tron.manager.request('/wallet/getassetissuebyid', {
+        return self.legacy.manager.request('/wallet/getassetissuebyid', {
             'value': token_id
         })
