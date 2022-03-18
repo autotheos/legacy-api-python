@@ -5,7 +5,7 @@
 # --------------------------------------------------------------------
 
 """
-    tronapi.manager
+    legacyapi.manager
     ===============
 
     This class is designed to configure and
@@ -14,10 +14,10 @@
     :copyright: © 2019 by the iEXBase.
     :license: MIT License
 """
-from trx_utils import is_string
+from lgcy_utils import is_string
 
-from tronapi import HttpProvider
-from tronapi.constants import DEFAULT_NODES
+from legacyapi import HttpProvider
+from legacyapi.constants import DEFAULT_NODES
 
 # In this variable, you can specify the base paths
 # to test the connection with the nodes.
@@ -29,7 +29,7 @@ STATUS_PAGE = {
 }
 
 
-class TronManager(object):
+class LegacyManager(object):
     """This class is designed to configure and define nodes
     for different types.
 
@@ -37,15 +37,15 @@ class TronManager(object):
 
     _providers = None
 
-    def __init__(self, tron, providers):
-        """Create new manager tron instance
+    def __init__(self, legacy, providers):
+        """Create new manager legacy instance
 
         Args:
-            tron: The tron implementation
+            legacy: The legacy implementation
             providers: List of providers
 
         """
-        self.tron = tron
+        self.legacy = legacy
         self.providers = providers
         self.preferred_node = None
 
