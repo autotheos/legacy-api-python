@@ -7,7 +7,7 @@
 # Here we specify default values for the different needed urls.
 # They are verified. Don't change this unless you know what you're doing.
 DEFAULT_NODES = {
-    'full_node': 'https://api.trongrid.io',
-    'solidity_node': 'https://api.trongrid.io',
-    'event_server': 'https://api.trongrid.io'
+    'full_node': 'https://apilg.lgcyscan.network/',
+    'solidity_node': 'https://apilg.lgcyscan.network/',
+    'event_server': 'https://apilg.lgcyscan.network/'
 }
