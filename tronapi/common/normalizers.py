@@ -9,14 +9,14 @@ from eth_utils import (
 from hexbytes import HexBytes
 from toolz import curry
 
-from tronapi.common.abi import process_type
-from tronapi.common.account import Address
-from tronapi.common.encoding import (
+from legacyapi.common.abi import process_type
+from legacyapi.common.account import Address
+from legacyapi.common.encoding import (
     to_bytes,
     text_if_str,
     to_text
 )
-from tronapi.common.validation import (
+from legacyapi.common.validation import (
     validate_abi,
     validate_address
 )
