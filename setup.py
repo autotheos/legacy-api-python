@@ -9,7 +9,7 @@
     setup
     =====
 
-    Tron: A Python API for interacting with Tron (TRX)
+    Legacy: A Python API for interacting with Legacy (LGCY)
 
     :copyright: © 2018 by the iEXBase.
     :license: MIT License
