@@ -5,12 +5,12 @@
 # --------------------------------------------------------------------
 
 
-class TronError(Exception):
-    """Base class for TronAPI exceptions."""
+class LegacyError(Exception):
+    """Base class for LegacyAPI exceptions."""
 
 
-class InvalidTronError(TronError):
-    """Raised Tron Error"""
+class InvalidLegacyError(LegacyError):
+    """Raised Legacy Error"""
 
 
 class FallbackNotFound(Exception):
@@ -49,7 +49,7 @@ class ValidationError(Exception):
     pass
 
 
-class TransportError(TronError):
+class TransportError(LegacyError):
     """Base exception for transport related errors.
 
     This is mainly for cases where the status code denotes an HTTP error, and
